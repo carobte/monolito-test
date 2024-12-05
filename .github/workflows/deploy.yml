@@ -1,0 +1,49 @@
+name : "App deploy"
+
+on:
+    push:
+        branches: 
+            - main
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    Checkout-Database:
+        runs-on: ubuntu-latest
+
+        steps:
+        # 1. Repo config
+        - name: Checkout repository
+          uses: actions/checkout@v3
+
+        # Php config 
+        - name: Setup PHP
+          uses: shivammathur/setup-php@v2
+          with:
+            php-version: '8.2' 
+            extensions: pdo_mysql # Extension for MySQL
+            ini-values: |
+              memory_limit=-1
+            tools: composer
+
+        # Laravel dependencies
+        - name: Install dependencies
+          run: composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader
+
+        # .env config
+        - name: Set environment variables
+          run: cp .env.example .env
+        # Use the environment variables for the database
+        - name: Update environment file
+          run: |
+            sed -i "s|DB_CONNECTION=mysql|DB_CONNECTION=${{ secrets.DB_CONNECTION }}|g" .env
+            sed -i "s|DB_HOST=127.0.0.1|DB_HOST=${{ secrets.DB_HOST }}|g" .env
+            sed -i "s|DB_PORT=3306|DB_PORT=${{ secrets.DB_PORT }}|g" .env
+            sed -i "s|DB_DATABASE=laravel|DB_DATABASE=${{ secrets.DB_DATABASE }}|g" .env
+            sed -i "s|DB_USERNAME=root|DB_USERNAME=${{ secrets.DB_USERNAME }}|g" .env
+            sed -i "s|DB_PASSWORD=|DB_PASSWORD=${{ secrets.DB_PASSWORD }}|g" .env
+
+        # Validate db connection
+        - name: Validate database connection
+          run: php artisan migrate:status
