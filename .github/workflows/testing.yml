@@ -1,27 +1,47 @@
-name : "Testeo de la aplicacion"
+name: "Application Testing" # Pipeline name.
 
-on:
-  push:
+on: 
+  push: # Trigger on push events.
     branches: 
-      - release
-  pull_request:
+      - release # Only on 'release' branch.
+  pull_request: # Trigger on pull requests.
     branches:
-      - release
+      - release # Only for 'release' branch.
 
 jobs:
-  Testing:
-    runs-on: ubuntu-latest
+  Testing: # Job for testing.
+    runs-on: ubuntu-latest # Use the latest Ubuntu runner.
     steps:
-      - name: Revise el codigo
+      - name: Checkout code # Clone the repo.
         uses: actions/checkout@v3
-        
-      - name: Set up PHP
+
+      - name: Set up PHP # Configure PHP.
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
-          extensions: mbstring, pdo, bcmath
-          ini-values: post_max_size=256M, upload_max_filesize=256M
-          coverage: none
+          php-version: '8.3' # Set PHP version.
+          extensions: mbstring, pdo, bcmath # Required extensions.
+          ini-values: post_max_size=256M, upload_max_filesize=256M # Custom PHP settings.
+          coverage: none # No coverage report.
 
-      - name: Saludar
-        run: php --version
+      # - name: Verify node version # GitHub Actions have pre installed a node version (18.20.5 at this time)
+      #   run: node -v
+
+      - name: Install composer packages
+        run: composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader
+        
+      - name: Create .env file
+        run: cp .env.example .env
+        
+      - name: Generate application key
+        run: php artisan key:generate
+      
+      - name: Set up node js version
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+            
+      - name: Install node and build the frontend app
+        run: npm install && npm run build   
+      
+      - name: Testing
+        run: php artisan test
