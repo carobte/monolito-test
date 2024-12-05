@@ -31,9 +31,9 @@ jobs:
         
       - name: Generate application key
         run: php artisan key:generate
-        
-      - name: Run migrations
-        run: php artisan migrate --env=testing
+            
+      - name: Install node and build the frontend app
+        run: npm install && npm run build   
       
       - name: Testing
         run: php artisan test
