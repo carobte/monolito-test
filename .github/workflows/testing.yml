@@ -35,5 +35,5 @@ jobs:
       - name: Run migrations
         run: php artisan migrate --env=testing
       
-      -name: Testing
+      - name: Testing
         run: php artisan test
