@@ -23,8 +23,8 @@ jobs:
           ini-values: post_max_size=256M, upload_max_filesize=256M # Custom PHP settings.
           coverage: none # No coverage report.
 
-      - name: Verify node version
-        run: node -v
+      # - name: Verify node version # GitHub Actions have pre installed a node version (18.20.5 at this time)
+      #   run: node -v
 
       - name: Install composer packages
         run: composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader
@@ -34,6 +34,11 @@ jobs:
         
       - name: Generate application key
         run: php artisan key:generate
+      
+      - name: Set up node js version
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
             
       - name: Install node and build the frontend app
         run: npm install && npm run build   
